@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mostafa Alanani</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #000; /* خلفية سوداء */
+            overflow: hidden;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .calculator {
+            background-color: #0b1c649a;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 400px;
+            z-index: 1;
+        }
+
+        .calculator input {
+            width: 100%;
+            padding: 10px;
+            font-size: 1.5rem;
+            text-align: right;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 5px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+        }
+
+        .calculator .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .calculator button {
+            padding: 15px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 5px;
+            background-color: #2510e0;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+            color: white;
+        }
+
+        .calculator button:hover {
+            background-color: #212061;
+        }
+
+        .calculator .operation {
+            background-color: #1d5880f5;
+            color: #fff;
+        }
+
+        .calculator .operation:hover {
+            background-color: #233a4785;
+        }
+
+        .calculator #clear {
+            background-color: #ff0000;
+            color: #fff;
+        }
+
+        .calculator #clear:hover {
+            background-color: #e50000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12 d-flex justify-content-center align-items-center position-relative" style="height: 100vh;">
+                <div class="calculator">
+                    <input type="text" id="display" class="form-control" readonly>
+                    <div class="buttons">
+                        <!-- أزرار الأرقام -->
+                        <button class="btn btn-light number">7</button>
+                        <button class="btn btn-light number">8</button>
+                        <button class="btn btn-light number">9</button>
+                        <button id="clear" class="btn btn-danger">C</button>
+                        <button class="btn btn-light number">4</button>
+                        <button class="btn btn-light number">5</button>
+                        <button class="btn btn-light number">6</button>
+                        <button class="btn btn-warning operation">+</button>
+                        <button class="btn btn-light number">1</button>
+                        <button class="btn btn-light number">2</button>
+                        <button class="btn btn-light number">3</button>
+                        <button class="btn btn-warning operation">*</button>
+                        <button class="btn btn-light number">0</button>
+                        <button class="btn btn-warning operation">-</button>
+                        <button class="btn btn-light number">.</button>
+                        <button class="btn btn-warning operation">/</button>
+                        <button class="btn btn-warning operation">=</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Select elements
+        const display = document.getElementById('display');
+        const numbers = document.querySelectorAll('.number');
+        const operations = document.querySelectorAll('.operation');
+        const clearButton = document.getElementById('clear');
+        
+        // Initialize variables
+        let previousNumber = '';
+        let currentNumber = '';
+        let operation = undefined;
+        
+        // Add event listeners to number buttons
+        numbers.forEach(number => {
+            number.addEventListener('click', () => {
+                appendNumber(number.innerText);
+                updateDisplay();
+            });
+        });
+        
+        // Add event listeners to operation buttons
+        operations.forEach(op => {
+            op.addEventListener('click', () => {
+                chooseOperation(op.innerText);
+                updateDisplay(); // Update display to show the operation
+            });
+        });
+        
+        // Add event listener to clear button
+        clearButton.addEventListener('click', () => {
+            clear();
+            updateDisplay();
+        });
+        
+        // Define functions for calculator operations
+        function appendNumber(number) {
+            if (number === '.' && currentNumber.includes('.')) return;
+            currentNumber += number;
+        }
+        
+        function chooseOperation(selectedOperation) {
+            if (currentNumber === '' && previousNumber === '') {
+                operation = selectedOperation; // Show operation even without numbers
+                updateDisplay(); // Ensure display is updated to reflect operation
+                return;
+            }
+            if (currentNumber === '' && previousNumber !== '') {
+                operation = selectedOperation; // Allow changing operation before entering current number
+                updateDisplay();
+                return;
+            }
+            if (previousNumber !== '') {
+                compute();
+            }
+            operation = selectedOperation;
+            previousNumber = currentNumber;
+            currentNumber = '';
+        }
+        
+        function compute() {
+            let computation;
+            const prev = parseFloat(previousNumber);
+            const current = parseFloat(currentNumber);
+            if (isNaN(prev) || isNaN(current)) return;
+            switch (operation) {
+                case '+':
+                    computation = prev + current;
+                    break;
+                case '-':
+                    computation = prev - current;
+                    break;
+                case '*':
+                    computation = prev * current;
+                    break;
+                case '/':
+                    if (current === 0) {
+                        computation = 'error';
+                    } else {
+                        computation = prev / current;
+                    }
+                    break;
+                default:
+                    return;
+            }
+            currentNumber = computation.toString();
+            operation = undefined;
+            previousNumber = '';
+            updateDisplay();
+        }
+        
+        function clear() {
+            previousNumber = '';
+            currentNumber = '';
+            operation = undefined;
+        }
+        
+        function updateDisplay() {
+            let displayValue = '';
+            if (previousNumber !== '') {
+                displayValue += previousNumber;
+                if (operation) {
+                    displayValue += ' ' + operation;
+                }
+            } else if (operation) {
+                displayValue += operation; // Show operation without previous number
+            }
+            if (currentNumber !== '') {
+                displayValue += ' ' + currentNumber;
+            }
+            display.value = displayValue.trim();
+        }
+        </script>
+</body>
+</html>
